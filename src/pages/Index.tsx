@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 // ── Картинки ──────────────────────────────────────────────────
 const IMG = {
@@ -122,7 +122,7 @@ const DISHES: Dish[] = [
     ],
   },
   {
-    id: "ukha", name: "Ушка", emoji: "🐟",
+    id: "ukha", name: "Уха", emoji: "🐟",
     steps: [
       { action: "Чистим рыбку", emoji: "🐠", ingredient: "рыбку" },
       { action: "Режем рыбку", emoji: "🔪", ingredient: "рыбку" },
@@ -364,6 +364,38 @@ export default function Index() {
   const charName = profile.names[selectedChar];
   const activeSkinsForChar = SKINS[selectedChar];
 
+  // Получить активный скин для произвольного персонажа
+  const getActiveSkin = (charId: CharId) => {
+    const skinId = profile.activeSkins[charId];
+    if (!skinId) return null;
+    return SKINS[charId].find(s => s.id === skinId) || null;
+  };
+
+  // Аватар персонажа со скином поверх
+  const CharAvatar = ({ charId, size = 80, className = "" }: { charId: CharId; size?: number; className?: string }) => {
+    const c = CHARS.find(x => x.id === charId)!;
+    const activeSkin = getActiveSkin(charId);
+    const shaking = charId === selectedChar && shake;
+    return (
+      <div className={`relative inline-block ${className}`} style={{ width: size, height: size }}>
+        <img src={IMG[charId]} alt={c.name}
+          className="rounded-full object-cover w-full h-full"
+          style={{
+            border: `3px solid ${c.color}`,
+            boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+            transform: shaking ? "scale(1.15)" : "scale(1)",
+            transition: "transform 0.1s",
+          }} />
+        {activeSkin && (
+          <div className="absolute -top-2 -right-2 rounded-full flex items-center justify-center"
+            style={{ width: size * 0.4, height: size * 0.4, background: activeSkin.color, border: "2px solid #fff", fontSize: size * 0.22 }}>
+            {activeSkin.emoji}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Лучшее блюдо и напиток
   const bestDish = Object.entries(profile.dishCounts).sort((a, b) => b[1] - a[1])[0];
   const bestDrink = Object.entries(profile.drinkCounts).sort((a, b) => b[1] - a[1])[0];
@@ -422,7 +454,7 @@ export default function Index() {
               <button key={c.id} onClick={() => startGame(c.id)}
                 className="rounded-3xl p-4 text-center bounce-hover"
                 style={{ background: "#fff", border: `3px solid ${c.color}`, boxShadow: `0 6px 0 ${c.color}88` }}>
-                <img src={IMG[c.id]} alt={c.name} className="w-full h-32 object-cover rounded-2xl mb-3" />
+                <div className="flex justify-center mb-3"><CharAvatar charId={c.id} size={96} /></div>
                 <div className="font-black text-base" style={{ color: c.color }}>{c.emoji} {c.name}</div>
                 <div className="text-xs opacity-50 font-semibold mt-1">{profile.names[c.id]}</div>
               </button>
@@ -435,7 +467,7 @@ export default function Index() {
       {screen === "menu" && (
         <div className="min-h-screen flex flex-col items-center px-4 py-6">
           <div className="flex items-center gap-3 mb-2">
-            <img src={IMG[selectedChar]} alt="" className="w-12 h-12 rounded-full object-cover" style={{ border: `3px solid ${char.color}` }} />
+            <CharAvatar charId={selectedChar} size={48} />
             <div>
               <div className="font-black text-lg" style={{ color: char.color }}>{charName}</div>
               <div className="text-xs opacity-50">Что будем готовить? 🍳</div>
@@ -486,8 +518,7 @@ export default function Index() {
             <img src={IMG.kitchen} alt="кухня" className="w-full h-44 object-cover" />
             {/* Персонаж на кухне */}
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-              <img src={IMG[selectedChar]} alt="" className="w-20 h-20 object-cover rounded-full"
-                style={{ border: `3px solid ${char.color}`, boxShadow: "0 4px 10px rgba(0,0,0,0.2)", transform: shake ? "scale(1.15)" : "scale(1)", transition: "transform 0.1s" }} />
+              <CharAvatar charId={selectedChar} size={80} />
             </div>
           </div>
 
@@ -534,8 +565,7 @@ export default function Index() {
             style={{ border: "3px solid rgba(0,0,0,0.08)", boxShadow: "0 6px 0 rgba(0,0,0,0.1)" }}>
             <img src={IMG.kitchen} alt="кухня" className="w-full h-44 object-cover" style={{ filter: "brightness(1.1)" }} />
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-              <img src={IMG[selectedChar]} alt="" className="w-20 h-20 object-cover rounded-full"
-                style={{ border: `3px solid ${char.color}`, boxShadow: "0 4px 10px rgba(0,0,0,0.2)", transform: shake ? "scale(1.15) rotate(5deg)" : "scale(1)", transition: "transform 0.1s" }} />
+              <CharAvatar charId={selectedChar} size={80} />
             </div>
             {/* Блюдо */}
             <div className="absolute top-3 right-3 text-4xl">{selectedDish.emoji}</div>
@@ -678,7 +708,7 @@ export default function Index() {
               return (
                 <div key={c.id} className="rounded-3xl p-3 text-center"
                   style={{ background: "#fff", border: `3px solid ${c.color}`, boxShadow: `0 5px 0 ${c.color}88` }}>
-                  <img src={IMG[c.id]} alt="" className="w-full h-20 object-cover rounded-2xl mb-2" />
+                  <div className="flex justify-center mb-2"><CharAvatar charId={c.id} size={72} /></div>
                   {isEditing ? (
                     <div className="flex gap-1 mb-1">
                       <input value={nameVal} onChange={e => setNameVal(e.target.value)}
