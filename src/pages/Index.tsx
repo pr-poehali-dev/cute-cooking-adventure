@@ -2,12 +2,28 @@ import { useState, useCallback } from "react";
 
 // ── Картинки ──────────────────────────────────────────────────
 const IMG = {
-  cat:      "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/9ab5a895-07bf-4111-b9bf-d446dd76a89d.jpg",
-  dog:      "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/ae9f9a4e-9705-4523-bf5e-8900bc76a549.jpg",
+  cat:        "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/9ab5a895-07bf-4111-b9bf-d446dd76a89d.jpg",
+  dog:        "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/ae9f9a4e-9705-4523-bf5e-8900bc76a549.jpg",
   chinchilla: "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/4426271b-a56b-4b72-b8b6-7c89808fe7bf.jpg",
-  frog:     "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/e2ba878a-fdf4-4ca5-90f6-fe7c24ff04c8.jpg",
-  kitchen:  "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/69ccb4e9-6120-48ef-a8b5-5e48204ec0d7.jpg",
-};
+  frog:       "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/e2ba878a-fdf4-4ca5-90f6-fe7c24ff04c8.jpg",
+  kitchen:    "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/69ccb4e9-6120-48ef-a8b5-5e48204ec0d7.jpg",
+  // Скины котика
+  cat_unicorn:     "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/cb02b3e3-0c2b-4be9-bca2-6c8c8f82e09d.jpg",
+  cat_strawberry:  "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/c9fb267b-3b1a-42e4-be04-426a5e256499.jpg",
+  cat_astronaut:   "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/e0c9db5d-8110-42a5-8e48-7ce8454c4655.jpg",
+  // Скины пёсика
+  dog_bee:         "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/43a1ef50-fd1a-44fa-99a7-7d3726dc1f85.jpg",
+  dog_bear:        "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/462b1826-6787-4526-a83f-da2353d92815.jpg",
+  dog_prince:      "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/573a32c4-e16a-4dc0-99d7-a2d95972ba62.jpg",
+  // Скины шиншиллика
+  chin_fairy:      "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/d58c8810-4241-43c6-b16a-f7bcefea4691.jpg",
+  chin_dino:       "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/b033d8b7-7bdf-4358-91d2-a013d4055845.jpg",
+  chin_mermaid:    "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/313822ab-7685-47b2-8860-380a3a3323ef.jpg",
+  // Скины лягушонка
+  frog_rainbow:    "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/53114d9b-1846-457c-8278-343874875ded.jpg",
+  frog_watermelon: "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/954f26f8-95df-46b5-aeef-f0c87ce69663.jpg",
+  frog_dragon:     "https://cdn.poehali.dev/projects/d32992dd-8906-418d-87bc-7f2e13522f39/files/6f1473ae-4d29-46ac-beba-32d1be0de3e8.jpg",
+} as const;
 
 // ── Типы ──────────────────────────────────────────────────────
 type Screen = "start" | "character" | "menu" | "drinks" | "cooking" | "eating" | "done" | "shop" | "profile";
@@ -17,7 +33,7 @@ interface Character { id: CharId; name: string; emoji: string; color: string; }
 interface Dish { id: string; name: string; emoji: string; steps: CookStep[]; }
 interface Drink { id: string; name: string; emoji: string; color: string; }
 interface CookStep { action: string; emoji: string; ingredient: string; }
-interface Skin { id: string; name: string; emoji: string; price: number; color: string; }
+interface Skin { id: string; name: string; img: keyof typeof IMG; price: number; color: string; }
 interface ProfileData {
   names: Record<CharId, string>;
   coins: number;
@@ -36,35 +52,27 @@ const CHARS: Character[] = [
   { id: "frog",      name: "Лягушонок",emoji: "🐸", color: "#7EC87E" },
 ];
 
-// ── Скины (5 на каждого) ──────────────────────────────────────
+// ── Скины (3 на каждого) ──────────────────────────────────────
 const SKINS: Record<CharId, Skin[]> = {
   cat: [
-    { id: "cat_pirate",   name: "Пиратик",      emoji: "🏴‍☠️", price: 100, color: "#2C2C54" },
-    { id: "cat_rainbow",  name: "Радужный",      emoji: "🌈", price: 100, color: "#FF6B9D" },
-    { id: "cat_space",    name: "Космонавтик",   emoji: "🚀", price: 100, color: "#1A1A2E" },
-    { id: "cat_witch",    name: "Колдунишка",    emoji: "🧙", price: 100, color: "#6B2D8B" },
-    { id: "cat_chef",     name: "Супер-шеф",     emoji: "👑", price: 100, color: "#FFD700" },
+    { id: "cat_unicorn",    name: "Единорожка",   img: "cat_unicorn",    price: 100, color: "#FF9DE8" },
+    { id: "cat_strawberry", name: "Клубничка",    img: "cat_strawberry", price: 100, color: "#FF4D6A" },
+    { id: "cat_astronaut",  name: "Космонавтик",  img: "cat_astronaut",  price: 100, color: "#7EB8FF" },
   ],
   dog: [
-    { id: "dog_cowboy",   name: "Ковбой",        emoji: "🤠", price: 100, color: "#8B4513" },
-    { id: "dog_ninja",    name: "Ниндзя",        emoji: "🥷", price: 100, color: "#2C2C2C" },
-    { id: "dog_princess", name: "Принцесска",    emoji: "👸", price: 100, color: "#FFB6C1" },
-    { id: "dog_dino",     name: "Динозаврик",    emoji: "🦕", price: 100, color: "#90EE90" },
-    { id: "dog_robot",    name: "Роботёнок",     emoji: "🤖", price: 100, color: "#708090" },
+    { id: "dog_bee",    name: "Пчёлка",      img: "dog_bee",   price: 100, color: "#FFD93D" },
+    { id: "dog_bear",   name: "Мишка",       img: "dog_bear",  price: 100, color: "#C8956C" },
+    { id: "dog_prince", name: "Принц",       img: "dog_prince",price: 100, color: "#6B9FFF" },
   ],
   chinchilla: [
-    { id: "chin_fairy",   name: "Феечка",        emoji: "🧚", price: 100, color: "#DDA0DD" },
-    { id: "chin_viking",  name: "Викингёнок",    emoji: "⚔️", price: 100, color: "#4682B4" },
-    { id: "chin_clown",   name: "Клоунишка",     emoji: "🤡", price: 100, color: "#FF4500" },
-    { id: "chin_angel",   name: "Ангелочек",     emoji: "😇", price: 100, color: "#FFF8DC" },
-    { id: "chin_punk",    name: "Панкуха",        emoji: "🎸", price: 100, color: "#8B0000" },
+    { id: "chin_fairy",   name: "Феечка",    img: "chin_fairy",   price: 100, color: "#DDA0DD" },
+    { id: "chin_dino",    name: "Динозаврик",img: "chin_dino",    price: 100, color: "#7EC8A0" },
+    { id: "chin_mermaid", name: "Русалочка", img: "chin_mermaid", price: 100, color: "#5BC8C8" },
   ],
   frog: [
-    { id: "frog_king",    name: "Королевич",     emoji: "👑", price: 100, color: "#FFD700" },
-    { id: "frog_disco",   name: "Дискотечный",   emoji: "🕺", price: 100, color: "#FF69B4" },
-    { id: "frog_wizard",  name: "Волшебник",     emoji: "🪄", price: 100, color: "#4B0082" },
-    { id: "frog_zen",     name: "Медитирующий",  emoji: "🧘", price: 100, color: "#20B2AA" },
-    { id: "frog_surfer",  name: "Сёрфер",        emoji: "🏄", price: 100, color: "#00BFFF" },
+    { id: "frog_rainbow",    name: "Радужка",   img: "frog_rainbow",    price: 100, color: "#FF9BB3" },
+    { id: "frog_watermelon", name: "Арбузик",   img: "frog_watermelon", price: 100, color: "#5CB85C" },
+    { id: "frog_dragon",     name: "Дракончик", img: "frog_dragon",     price: 100, color: "#9B59B6" },
   ],
 };
 
@@ -371,27 +379,23 @@ export default function Index() {
     return SKINS[charId].find(s => s.id === skinId) || null;
   };
 
-  // Аватар персонажа со скином поверх
+  // Аватар персонажа — показывает скин если активен, иначе базовую картинку
   const CharAvatar = ({ charId, size = 80, className = "" }: { charId: CharId; size?: number; className?: string }) => {
     const c = CHARS.find(x => x.id === charId)!;
     const activeSkin = getActiveSkin(charId);
     const shaking = charId === selectedChar && shake;
+    const imgSrc = activeSkin ? IMG[activeSkin.img] : IMG[charId];
+    const borderColor = activeSkin ? activeSkin.color : c.color;
     return (
       <div className={`relative inline-block ${className}`} style={{ width: size, height: size }}>
-        <img src={IMG[charId]} alt={c.name}
+        <img src={imgSrc} alt={c.name}
           className="rounded-full object-cover w-full h-full"
           style={{
-            border: `3px solid ${c.color}`,
+            border: `3px solid ${borderColor}`,
             boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
             transform: shaking ? "scale(1.15)" : "scale(1)",
             transition: "transform 0.1s",
           }} />
-        {activeSkin && (
-          <div className="absolute -top-2 -right-2 rounded-full flex items-center justify-center"
-            style={{ width: size * 0.4, height: size * 0.4, background: activeSkin.color, border: "2px solid #fff", fontSize: size * 0.22 }}>
-            {activeSkin.emoji}
-          </div>
-        )}
       </div>
     );
   };
@@ -660,9 +664,11 @@ export default function Index() {
                 const owned = profile.ownedSkins.includes(skin.id);
                 const active = profile.activeSkins[selectedChar] === skin.id;
                 return (
-                  <div key={skin.id} className="rounded-3xl p-4 flex items-center gap-4"
-                    style={{ background: "#fff", border: `3px solid ${active ? skin.color : "rgba(0,0,0,0.07)"}`, boxShadow: `0 4px 0 ${active ? skin.color + "88" : "rgba(0,0,0,0.08)"}` }}>
-                    <div className="text-4xl">{skin.emoji}</div>
+                  <div key={skin.id} className="rounded-3xl p-3 flex items-center gap-3"
+                    style={{ background: active ? skin.color + "18" : "#fff", border: `3px solid ${active ? skin.color : "rgba(0,0,0,0.07)"}`, boxShadow: `0 4px 0 ${active ? skin.color + "88" : "rgba(0,0,0,0.08)"}` }}>
+                    <img src={IMG[skin.img]} alt={skin.name}
+                      className="rounded-2xl object-cover flex-shrink-0"
+                      style={{ width: 72, height: 72, border: `2px solid ${skin.color}`, opacity: owned ? 1 : 0.5 }} />
                     <div className="flex-1">
                       <div className="font-black text-sm">{skin.name}</div>
                       <div className="text-xs opacity-50">{owned ? (active ? "✅ Активен" : "Куплено") : `🪙 ${skin.price} монеток`}</div>
